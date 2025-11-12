@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\CreatePatientRequest;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
 use App\Http\Requests\V1\CreateUserRequest;
 use App\Http\Requests\V1\ResetUserPasswordRequest;
 use App\Http\Requests\V1\SetDefaultAvatarRequest;
+use App\Http\Resources\V1\PatientResource;
 use App\Http\Resources\V1\RoleResource;
 use App\Http\Resources\V1\UserResource;
 use App\Models\V1\Role;
 use App\Models\V1\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -349,6 +353,127 @@ class UsersController extends Controller
         return apiResponse(
             data: ['default_path' => url(Storage::url($path))],
             message: 'Global default avatar updated successfully'
+        );
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/users/user-by-id/userId",
+     *     tags={"Users"},
+     *     summary="Get a user with this userId in the system",
+     *     operationId="userById",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Single user",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/UserResource"
+     *             ),
+     *             @OA\Property(property="message", type="string", example="User retrieved successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
+     *         )
+     *     )
+     * )
+     */
+    public function userById(User $user)  {
+        return apiResponse(new UserResource($user));
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/users/user-by-username/username",
+     *     tags={"Users"},
+     *     summary="Get a user with this username in the system",
+     *     operationId="userByUsername",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Single user",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/UserResource"
+     *             ),
+     *             @OA\Property(property="message", type="string", example="User retrieved successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
+     *         )
+     *     )
+     * )
+     */
+    public function userByUsername(string $username)
+    {
+        try {
+            $user = User::where('username', $username)->firstOrFail();
+            return apiResponse(data: new UserResource($user), success: true);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+
+            return apiResponse(
+                success: false,
+                message: "User with username '{$username}' not found.",
+                status: 404,
+            );
+        }
+    }
+
+    public function createPatient(CreatePatientRequest $request)
+    {
+        $currentUser = $request->user();
+        $validated = $request->validated();
+
+        $created = null;
+
+        DB::transaction(function () use ($validated, &$created, $currentUser) {
+            // 1. Create user
+            $createdFields = Arr::only($validated, ['name', 'email', 'phone', 'username']);
+            $createdFields['password'] = Hash::make('password123');
+            $createdFields['created_by'] = $currentUser->id;
+            $created = User::create($createdFields);
+
+            // 2. Assign 'patient' role
+            $patientRole = Role::where('name', 'patient')->firstOrFail();
+            $created->roles()->sync([$patientRole->id]);
+
+            // 3. Create patient profile
+            $created->patient()->create([
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+                'medical_history' => $validated['medical_history'] ?? null,
+                'patient_code' => $validated['patient_code'] ?? null,
+                'medical_notes' => $validated['medical_notes'] ?? null,
+            ]);
+        });
+
+        if (!$created) {
+            return apiResponse(
+                message: 'Failed to create patient',
+                status: 500
+            );
+        }
+
+        $patient = $created->patient; // property, not method
+
+        return apiResponse(
+            data: new PatientResource($patient),
+            message: 'Patient created successfully',
+            status: 201
         );
     }
 }

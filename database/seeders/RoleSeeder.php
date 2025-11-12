@@ -17,6 +17,7 @@ class RoleSeeder extends Seeder
             ['name' => 'manager', 'description' => 'Oversees clinic operations, users, and reports.'],
             ['name' => 'dentist', 'description' => 'Manages patient treatments, records, and appointments.'],
             ['name' => 'patient', 'description' => 'Accesses personal records and manages appointments.'],
+            ['name' => 'receptionist', 'description' => 'Clerk'],
         ];
 
         foreach ($roles as $role) {

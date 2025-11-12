@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DentistController;
+use App\Http\Controllers\Api\V1\PatientController;
+use App\Http\Controllers\Api\V1\ReceptionistController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UsersController;
 use Illuminate\Auth\AuthenticationException;
@@ -26,18 +29,56 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);
 });
 
-Route::middleware(['auth:sanctum', 'valid_password'])->group(function() {
-    Route::prefix('user')->group(function() {
-        Route::get('/profile', [UserController::class, 'getProfile']);
-        Route::post('/update-profile', [UserController::class, 'updateProfile']);
+Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
+
+    Route::prefix('user')->controller(UserController::class)->group(function () {
+        Route::get('/profile', 'getProfile');
+        Route::put('/profile', 'updateProfile');
     });
 
-    Route::prefix('users')->middleware('role:manager') ->group(function() {
-        Route::get('/', [UsersController::class, 'index']);
-        Route::get('/roles', [UsersController::class, 'roles']);
-        Route::post('/create-user', [UsersController::class, 'createUser']);
-        Route::post('/toggle-user-activity/{user}', [UsersController::class, 'toggleUserActivity']);
-        Route::post('/reset-user-password/{user}', [UsersController::class, 'resetUserPassword']);
-        Route::post('/set-default-avatar', [UsersController::class, 'setDefaultAvatar']);
-    });
+    Route::prefix('users')
+        ->middleware('role:manager')
+        ->controller(UsersController::class)
+        ->group(function() {
+            Route::get('/', 'index');
+            Route::get('/roles', 'roles');
+            Route::post('/', 'createUser');
+            Route::patch('/{user}/toggle-activity', 'toggleUserActivity');
+            Route::post('/{user}/reset-password', 'resetUserPassword');
+            Route::post('/set-default-avatar', 'setDefaultAvatar');
+            Route::get('/by-id/{user}', 'userById');
+            Route::get('/by-username/{username}', 'userByUsername');
+        });
+
+    Route::prefix('patient')
+        ->middleware('role:patient')
+        ->controller(PatientController::class)
+        ->group(function () {
+            Route::get('/profile', 'getPatientProfile');
+            Route::put('/profile', 'updatePatientProfile');
+            Route::get('/appointments', 'getPatientAppointments');
+        });
+
+    Route::prefix('dentist')
+        ->middleware('role:dentist')
+        ->controller(DentistController::class)
+        ->group(function () {
+            Route::get('/profile', 'getDentistProfile');
+            Route::put('/profile', 'updateDentistProfile');
+            Route::get('/patients', 'getDentistPatients');
+            Route::get('/schedule', 'getDentistSchedule');
+        });
+
+    Route::prefix('receptionist')
+        ->middleware('role:receptionist')
+        ->controller(ReceptionistController::class)
+        ->group(function () {
+            Route::get('/doctors', 'getDoctors');
+            Route::post('/patients', 'createPatient');
+            Route::get('/patients/search', 'searchPatients');
+            Route::prefix('appointments')->group(function () {
+                Route::post('/', 'setAppointment');
+                Route::get('/{dentist}', 'getDoctorAppointments');
+            });
+        });
 });

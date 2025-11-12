@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * @OA\Schema(
  *     schema="RoleResource",
- *     title="Role Resource",
+ *     title="Role",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="name", type="string", example="dentist"),
  *     @OA\Property(property="description", type="string", example="Performs dental treatments")

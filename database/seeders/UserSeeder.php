@@ -46,6 +46,16 @@ class UserSeeder extends Seeder
                 'must_change_password' => true,
                 'roles' => ['patient'],
             ],
+            [
+                'username' => 'sarah',
+                'name' => 'Sarah Doe',
+                'email' => null,
+                'phone' => null,
+                'password' => Hash::make('password123'),
+                'is_active' => true,
+                'must_change_password' => true,
+                'roles' => ['receptionist'],
+            ],
         ];
 
         foreach ($users as $userData) {

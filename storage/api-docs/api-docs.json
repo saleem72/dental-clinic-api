@@ -907,12 +907,184 @@
                     }
                 ]
             }
+        },
+        "/api/v1/users/user-by-id/userId": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a user with this userId in the system",
+                "operationId": "userById",
+                "responses": {
+                    "200": {
+                        "description": "Single user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User retrieved successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users/user-by-username/username": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a user with this username in the system",
+                "operationId": "userByUsername",
+                "responses": {
+                    "200": {
+                        "description": "Single user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User retrieved successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
         "schemas": {
+            "PatientResource": {
+                "title": "Patient",
+                "description": "Patient details returned by the API",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "username": {
+                        "type": "string",
+                        "example": "john_doe"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "john@example.com"
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "http://localhost:8000/storage/avatars/john.png"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+123456789"
+                    },
+                    "date_of_birth": {
+                        "type": "string",
+                        "example": "1972-11-28"
+                    },
+                    "gender": {
+                        "type": "enum[male, female, other]",
+                        "example": "male"
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "dentist"
+                        }
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "must_change_password": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
             "RoleResource": {
-                "title": "Role Resource",
+                "title": "Role",
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -930,7 +1102,7 @@
                 "type": "object"
             },
             "UserResource": {
-                "title": "User Resource",
+                "title": "User",
                 "description": "User details returned by the API",
                 "properties": {
                     "id": {

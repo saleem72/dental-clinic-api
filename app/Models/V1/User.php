@@ -63,4 +63,16 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class);
     }
+
+    public function dentist() {
+        return $this->hasOne(Dentist::class);
+    }
+
+    public function patient() {
+        return $this->hasOne(Patient::class);
+    }
+
+    public function creator() {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

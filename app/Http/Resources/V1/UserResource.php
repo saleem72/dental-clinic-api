@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Config;
 /**
  * @OA\Schema(
  *     schema="UserResource",
- *     title="User Resource",
+ *     title="User",
  *     description="User details returned by the API",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="username", type="string", example="john_doe"),
@@ -46,14 +46,21 @@ class UserResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'username' => $this->username,
             'name' => $this->name,
+            'username' => $this->username,
             'email' => $this->email,
-            'image' => $avatarUrl,
             'phone' => $this->phone,
-            'roles' => $this->roles->pluck('name'), // RoleResource::collection($this->roles),
-            'is_active' => $this->is_active,
-            'must_change_password' => $this->must_change_password,
+            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            // 'is_active' => $this->is_active,
+            // 'must_change_password' => $this->must_change_password,
+            'email_verified_at' => $this->email_verified_at,
+            'roles' => $this->roles->pluck('name'), // if you're using roles relationship
+
+            // Conditional relationships
+            'dentist_profile' => $this->whenLoaded('dentist', fn () => new DentistResource($this->dentist)),
+            'patient_profile' => $this->whenLoaded('patient', fn () => new PatientResource($this->patient)),
+
+            'created_by' => $this->whenLoaded('creator', fn () => new UserMiniResource($this->creator)),
         ];
     }
 }

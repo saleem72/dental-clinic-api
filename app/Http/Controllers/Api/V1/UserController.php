@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\UpdateProfileRequest;
 use App\Http\Resources\V1\UserResource;
+use App\Models\V1\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
