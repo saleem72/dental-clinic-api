@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ErrorCode;
+use App\Http\Middleware\HasAnyRoleMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\ValidPasswordMiddleware;
 use Illuminate\Foundation\Application;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => RoleMiddleware::class,
+            'role.any' => HasAnyRoleMiddleware::class,
             'valid_password' => ValidPasswordMiddleware::class,
         ]);
     })

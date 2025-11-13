@@ -36,12 +36,14 @@ class PatientResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // $user = $this->user();
         return [
             'id' => $this->id,
-            'name' => $this->user->name,
+            'user_id' => $this->user_id,
+            'name' =>  $this->user->name,
             'phone' => $this->user->phone,
             'email' => $this->user->email,
-            'user_id' => $this->user_id,
+            'image' => $this->user->avatar,
             'date_of_birth' => optional($this->date_of_birth)->format('Y-m-d'),
             'gender' => $this->gender,
             'medical_notes' => $this->medical_notes,
@@ -51,7 +53,7 @@ class PatientResource extends JsonResource
 
             // 'user' => $this->whenLoaded('user', fn () => new UserMiniResource($this->user)),
             'dentist' => $this->whenLoaded('dentist', fn () => new DentistResource($this->dentist)),
-            // 'created_by' => new UserMiniResource($this->user->creator()),
+
 
         ];
     }

@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DentistController;
+use App\Http\Controllers\Api\V1\DentistsController;
 use App\Http\Controllers\Api\V1\PatientController;
+use App\Http\Controllers\Api\V1\PatientsController;
 use App\Http\Controllers\Api\V1\ReceptionistController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UsersController;
@@ -42,12 +44,27 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
         ->group(function() {
             Route::get('/', 'index');
             Route::get('/roles', 'roles');
-            Route::post('/', 'createUser');
-            Route::patch('/{user}/toggle-activity', 'toggleUserActivity');
+            Route::post('/{user}/toggle-activity', 'toggleUserActivity');
             Route::post('/{user}/reset-password', 'resetUserPassword');
             Route::post('/set-default-avatar', 'setDefaultAvatar');
             Route::get('/by-id/{user}', 'userById');
             Route::get('/by-username/{username}', 'userByUsername');
+        });
+
+    Route::prefix('patients')
+        ->controller(PatientsController::class)
+        ->group(function() {
+            Route::get('/', 'index')->middleware('role.any:manager|dentist|receptionist');
+            Route::post('/', 'createPatient')->middleware('role.any:manager|dentist|receptionist');
+            Route::get('/search', 'searchPatients');
+        });
+
+    Route::prefix('dentists')
+        ->controller(DentistsController::class)
+        ->group(function() {
+            Route::get('/', 'index')->middleware('role.any:manager|dentist|receptionist');
+            Route::post('/', 'createDentist')->middleware('role.any:manager|dentist|receptionist');
+            Route::get('/search', 'searchDentists');
         });
 
     Route::prefix('patient')
@@ -67,18 +84,5 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
             Route::put('/profile', 'updateDentistProfile');
             Route::get('/patients', 'getDentistPatients');
             Route::get('/schedule', 'getDentistSchedule');
-        });
-
-    Route::prefix('receptionist')
-        ->middleware('role:receptionist')
-        ->controller(ReceptionistController::class)
-        ->group(function () {
-            Route::get('/doctors', 'getDoctors');
-            Route::post('/patients', 'createPatient');
-            Route::get('/patients/search', 'searchPatients');
-            Route::prefix('appointments')->group(function () {
-                Route::post('/', 'setAppointment');
-                Route::get('/{dentist}', 'getDoctorAppointments');
-            });
         });
 });

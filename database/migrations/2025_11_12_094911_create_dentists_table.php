@@ -14,16 +14,11 @@ return new class extends Migration
         Schema::create('dentists', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-
-            // Professional details
             $table->string('license_number')->nullable();
-            $table->string('specialization')->nullable(); // e.g. "Orthodontist"
-            $table->text('bio')->nullable(); // short profile/bio
-
-            // Work-related
-            $table->decimal('commission_rate', 5, 2)->nullable(); // optional, % for internal use
+            $table->string('specialization')->nullable();
+            $table->text('bio')->nullable();
+            $table->decimal('commission_rate', 5, 2)->nullable();
             $table->boolean('is_available')->default(true);
-
             $table->timestamps();
         });
     }

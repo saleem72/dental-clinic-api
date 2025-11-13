@@ -17,19 +17,20 @@ class DentistResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
+            'name' =>  $this->user->name,
+            'phone' => $this->user->phone,
+            'email' => $this->user->email,
+            'image' => $this->user->avatar,
             'license_number' => $this->license_number,
             'specialization' => $this->specialization,
             'bio' => $this->bio,
             'commission_rate' => $this->commission_rate,
             'is_available' => $this->is_available,
 
-            'user' => $this->whenLoaded('user', fn () => new UserMiniResource($this->user)),
+            // 'user' => $this->whenLoaded('user', fn () => new UserMiniResource($this->user)),
 
             'patients_count' => $this->whenCounted('patients'),
             'patients' => $this->whenLoaded('patients', fn () => PatientResource::collection($this->patients)),
-
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -36,13 +36,7 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        //   $avatarUrl = $this->image
-        //     ? Storage::disk('public')->url($this->image)
-        //     : Storage::disk('public')->url(Config::get('app.default_avatar_path'));
 
-        $avatarUrl = $this->image
-            ?  url(Storage::url($this->image))
-            : url(Config::get('app.default_avatar_path'));
 
         return [
             'id' => $this->id,
@@ -50,11 +44,12 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'email' => $this->email,
             'phone' => $this->phone,
-            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'avatar' => $this->avatar,
+            // 'image' => $this->image ? asset('storage/' . $this->image) : null,
             // 'is_active' => $this->is_active,
             // 'must_change_password' => $this->must_change_password,
             'email_verified_at' => $this->email_verified_at,
-            'roles' => $this->roles->pluck('name'), // if you're using roles relationship
+            'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')), // if you're using roles relationship
 
             // Conditional relationships
             'dentist_profile' => $this->whenLoaded('dentist', fn () => new DentistResource($this->dentist)),

@@ -9,6 +9,8 @@ use App\Http\Resources\V1\UserMiniResource;
 use App\Http\Resources\V1\UserResource;
 use App\Models\V1\Role;
 use App\Models\V1\User;
+use App\Services\CreatePatientService;
+use App\Services\UsersService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -47,11 +49,39 @@ class ReceptionistController extends Controller
         );
     }
 
+    // Route::get('/doctors', [ReceptionistController::class, 'getDoctors']);
+    public function getPatients(Request $request)  {
+        // Get all users who have the "dentist" role
+        $query = User::query()
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'patient');
+            })
+            ->with(['patient']); // eager load dentist info if exists
+
+        // Optional filters (availability or specialization only if dentist record exists)
+        // if ($request->filled('available')) {
+        //     $query->whereHas('dentist', function ($q) use ($request) {
+        //         $q->where('is_available', (bool) $request->boolean('available'));
+        //     });
+        // }
+
+        // if ($request->filled('specialization')) {
+        //     $query->whereHas('dentist', function ($q) use ($request) {
+        //         $q->where('specialization', 'like', '%' . $request->specialization . '%');
+        //     });
+        // }
+
+        $patients =  $query->get()->pluck('patient')->filter();
 
 
-     public function createPatient(CreatePatientRequest $request) {
-        return app(UsersController::class)->createPatient($request);
-     }
+        return apiResponse(
+            data: PatientResource::collection($patients),
+            success: true,
+            message: 'Doctors list retrieved successfully.'
+        );
+    }
+
+
 
 
 

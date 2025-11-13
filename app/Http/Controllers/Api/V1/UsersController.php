@@ -15,6 +15,7 @@ use App\Http\Resources\V1\RoleResource;
 use App\Http\Resources\V1\UserResource;
 use App\Models\V1\Role;
 use App\Models\V1\User;
+use App\Services\CreatePatientService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -96,96 +97,36 @@ class UsersController extends Controller
      */
     public function index(Request $request) {
 
-        $users = User::all();
+        // Define a whitelist of relationships that are allowed to be included
+        $allowedIncludes = [
+            'patient',
+            'roles',
+            'dentist'
+        ];
+
+        $query = User::query();
+        $requestedIncludes = [];
+
+        // 1. Check if the 'include' query parameter is present
+        if ($request->has('include')) {
+            // Get the relations as an array from the request
+            $relationsFromRequest = explode(',', $request->input('include'));
+
+            // 2. Filter the requested relations against the whitelist
+            $requestedIncludes = array_filter($relationsFromRequest, function ($relation) use ($allowedIncludes) {
+                return in_array($relation, $allowedIncludes);
+            });
+        }
+
+        // 3. Eager load only the *whitelisted* and *requested* relations
+        if (!empty($requestedIncludes)) {
+            $query->with($requestedIncludes);
+        }
+
+        $users = $query->get();
         return apiResponse(UserResource::collection($users));
     }
 
-
-    /**
-     * @OA\Post(
-     *     path="/api/v1/users",
-     *     tags={"Users"},
-     *     summary="Create a new user",
-     *     operationId="createUser",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"username","name","email","roles"},
-     *             @OA\Property(property="username", type="string", example="john_doe"),
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *             @OA\Property(property="phone", type="string", example="+123456789"),
-     *             @OA\Property(
-     *                 property="roles",
-     *                 type="array",
-     *                 @OA\Items(type="integer", example=2),
-     *                 description="Array of role IDs assigned to the user"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="User created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="User created successfully"),
-     *             @OA\Property(
-     *                 property="data",
-     *                 ref="#/components/schemas/UserResource"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Validation failed."),
-     *             @OA\Property(property="validation_errors", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthorized",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Unauthenticated.")
-     *         )
-     *     )
-     * )
-     */
-    public function createUser(CreateUserRequest $request) {
-
-         $validatedData = $request->validated();
-
-
-        $filteredData = array_intersect_key($validatedData, array_flip([
-            'username',
-            'name',
-            'email',
-            'phone',
-            'is_active',           // <-- Add these
-            'must_change_password', // <-- Add these
-        ]));
-
-
-        $roles = $validatedData['roles'];
-
-
-
-        $filteredData['password'] = Hash::make('password123');
-
-        $user = User::create($filteredData);
-
-        $user->roles()->sync($roles);
-
-        return apiResponse(
-            data: new UserResource($user),
-            message: 'User created successfully',
-            status: 201
-        );
-    }
 
 
     /**
@@ -222,14 +163,12 @@ class UsersController extends Controller
      * )
      */
     public function toggleUserActivity(Request $request, User $user) {
-        $user->is_active = !$user->is_active;
-        $user->save();
+        $user->toggleActivity();
 
+        $name = $user->name;
+        $isActive = $user->is_active ? 'true' : 'false';
         return apiResponse(
-            data: new UserResource($user),
-            success: false,
-            message: 'you have not implemented it yet',
-            status: 400,
+            message: "active status for user {$name} is {$isActive}",
         );
     }
 
@@ -266,8 +205,7 @@ class UsersController extends Controller
      * )
      */
     public function resetUserPassword(Request $request, User $user) {
-        $user->password = Hash::make('password123');
-        $user->save();
+        $user->resetPassword('password123');
 
         $name = $user->name;
         return apiResponse(
@@ -433,47 +371,5 @@ class UsersController extends Controller
         }
     }
 
-    public function createPatient(CreatePatientRequest $request)
-    {
-        $currentUser = $request->user();
-        $validated = $request->validated();
 
-        $created = null;
-
-        DB::transaction(function () use ($validated, &$created, $currentUser) {
-            // 1. Create user
-            $createdFields = Arr::only($validated, ['name', 'email', 'phone', 'username']);
-            $createdFields['password'] = Hash::make('password123');
-            $createdFields['created_by'] = $currentUser->id;
-            $created = User::create($createdFields);
-
-            // 2. Assign 'patient' role
-            $patientRole = Role::where('name', 'patient')->firstOrFail();
-            $created->roles()->sync([$patientRole->id]);
-
-            // 3. Create patient profile
-            $created->patient()->create([
-                'date_of_birth' => $validated['date_of_birth'] ?? null,
-                'gender' => $validated['gender'] ?? null,
-                'medical_history' => $validated['medical_history'] ?? null,
-                'patient_code' => $validated['patient_code'] ?? null,
-                'medical_notes' => $validated['medical_notes'] ?? null,
-            ]);
-        });
-
-        if (!$created) {
-            return apiResponse(
-                message: 'Failed to create patient',
-                status: 500
-            );
-        }
-
-        $patient = $created->patient; // property, not method
-
-        return apiResponse(
-            data: new PatientResource($patient),
-            message: 'Patient created successfully',
-            status: 201
-        );
-    }
 }

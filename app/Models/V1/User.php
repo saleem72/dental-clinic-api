@@ -6,7 +6,10 @@ namespace App\Models\V1;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Config;
 
 class User extends Authenticatable
 {
@@ -74,5 +77,40 @@ class User extends Authenticatable
 
     public function creator() {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function toggleActivity()
+    {
+        static::withoutTimestamps(function () {
+            $this->is_active = !$this->is_active;
+            $this->save();
+        });
+    }
+
+    public function resetPassword(string $newPassword)  {
+        static::withoutTimestamps(function () use ($newPassword) {
+            $this->password = Hash::make($newPassword);
+            $this->must_change_password = true;
+            $this->save();
+        });
+    }
+
+    /**
+     * if the user has an image it return absolute path to the user image, else it returns path for default image
+     */
+    public function getAvatarAttribute()
+    {
+        // return    $this->image
+        //     ? Storage::disk('public')->url($this->image)
+        //     : Storage::disk('public')->url(Config::get('app.default_avatar_path'));
+
+        // Check if image path exists first
+        if ($this->image) {
+            // Use the asset() helper for publicly accessible files
+            return asset('storage/' . $this->image);
+        }
+
+        // Return the default avatar path
+        return asset('storage/' . Config::get('app.default_avatar_path'));
     }
 }
