@@ -26,7 +26,7 @@ class DentalProcedureSeeder extends Seeder
             ['name' => 'Fluoride Treatment – Child', 'dental_code' => 'D1208', 'fee' => 35.00],
             ['name' => 'Sealant – Per Tooth', 'dental_code' => 'D1351', 'fee' => 40.00],
             ['name' => 'Panoramic Radiograph', 'dental_code' => 'D0330', 'fee' => 80.00],
-            ['name' => 'Periapical Radiograph – Single', 'dental_code' => 'D0220', 'fee' => 25.00],
+            ['name' => 'Periodical Radiograph – Single', 'dental_code' => 'D0220', 'fee' => 25.00],
             ['name' => 'Extraction – Single Tooth', 'dental_code' => 'D7140', 'fee' => 150.00],
             ['name' => 'Root Canal – Anterior', 'dental_code' => 'D3310', 'fee' => 400.00],
             ['name' => 'Root Canal – Bicuspid', 'dental_code' => 'D3320', 'fee' => 500.00],

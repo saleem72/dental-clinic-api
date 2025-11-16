@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\V1\ActionRequest;
+use App\Policies\V1\ActionRequestPolicy;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,4 +23,8 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
+    protected $policies = [
+        ActionRequest::class => ActionRequestPolicy::class,
+    ];
 }

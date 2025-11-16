@@ -23,7 +23,7 @@ return new class extends Migration
             $table->date('completed_at')->nullable();
             $table->text('notes')->nullable();
 
-            // Financials
+            // Financial
             $table->decimal('total_cost', 10, 2)->default(0);
 
             // Lifecycle

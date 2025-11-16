@@ -6,8 +6,10 @@ use App\Http\Controllers\Api\V1\DentistsController;
 use App\Http\Controllers\Api\V1\PatientController;
 use App\Http\Controllers\Api\V1\PatientsController;
 use App\Http\Controllers\Api\V1\ReceptionistController;
+use App\Http\Controllers\Api\V1\TreatmentsController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UsersController;
+use App\Http\Controllers\Api\V1\ActionRequestController;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Route;
 
@@ -67,6 +69,13 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
             Route::get('/search', 'searchDentists');
         });
 
+    Route::prefix('treatments')
+        ->controller(TreatmentsController::class)
+        // ->middleware('role:dentist')
+        ->group(function() {
+            Route::get('/procedures', 'getDentalProcedures');
+        });
+
     Route::prefix('patient')
         ->middleware('role:patient')
         ->controller(PatientController::class)
@@ -85,4 +94,14 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
             Route::get('/patients', 'getDentistPatients');
             Route::get('/schedule', 'getDentistSchedule');
         });
+
+        Route::prefix('requests')
+            ->controller(ActionRequestController::class)
+            ->group(function () {
+                Route::get('/', 'index');
+                Route::post('/', 'store');
+                Route::post('/potential-patient', 'potentialPatient');
+
+                Route::post('/{actionRequest}/handle', 'handle');
+            });
 });

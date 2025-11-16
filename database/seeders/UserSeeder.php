@@ -280,3 +280,5 @@ class UserSeeder extends Seeder
         $this->command->info('All users, dentists, and patients seeded successfully.');
     }
 }
+
+

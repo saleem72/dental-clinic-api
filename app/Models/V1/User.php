@@ -113,4 +113,22 @@ class User extends Authenticatable
         // Return the default avatar path
         return asset('storage/' . Config::get('app.default_avatar_path'));
     }
+
+    // public function hasRole($role)
+    // {
+    //     $roles = $this->roles->pluck('name');
+    //     return $roles->contains($role);
+    // }
+
+    public function hasRole($roles) // $roles is an array, e.g., ['manager', 'dentist']
+{
+    // Gets a collection of role names for the user, e.g., ['receptionist']
+    $userRoles = $this->roles->pluck('name');
+
+    // Finds common elements between the user's roles and the required roles.
+    // If user has ['receptionist'] and required is ['manager', 'dentist'], intersect is empty []
+    $hasRole = $userRoles->intersect($roles)->isNotEmpty();
+
+    return $hasRole;
+}
 }
