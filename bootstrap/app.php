@@ -107,7 +107,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'Internal server error',
                 'error_code' => ErrorCode::SERVER_ERROR,
                 'error'   => app()->isLocal() ? $e->getMessage() : null,
-                // 'trace'   => app()->isLocal() ? $e->getTrace() : null,
+                'trace'   => app()->isLocal() ? $e->getTrace() : null,
             ], 500);
         });
 

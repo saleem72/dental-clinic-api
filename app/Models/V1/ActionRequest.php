@@ -14,6 +14,7 @@ class ActionRequest extends Model
     protected $fillable = [
         'created_by_id',
         'assigned_to_id',
+        'handled_by_id',
         'patient_id',
         'treatment_course_id',
         'treatment_session_id',

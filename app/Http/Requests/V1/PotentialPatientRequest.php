@@ -30,7 +30,7 @@ class PotentialPatientRequest extends FormRequest
             "email"           => 'nullable|email|unique:users,email',
             "phone"           => 'required|digits:10',
             "gender"          => ['required', Rule::in(array_column(Gender::cases(), 'value'))],
-            "date_of_birth"   => 'nullable|date',
+            "date_of_birth"   => 'nullable|date|date_format:Y-m-d\TH:i:s\Z',
             "medical_notes"   => 'nullable|string',
             "medical_history" => 'nullable|string',
         ];

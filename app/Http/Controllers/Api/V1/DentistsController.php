@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\DentistAppointmentDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\CreateDentistRequest;
 use App\Http\Resources\V1\DentistResource;
 use App\Models\V1\Dentist;
+use App\Models\V1\TreatmentSession;
 use App\Models\V1\User;
 use App\Services\UsersService;
 use Illuminate\Http\Request;
@@ -13,7 +15,8 @@ use Illuminate\Http\Request;
 class DentistsController extends Controller
 {
 
-    public function index(Request $request)  {
+    public function index(Request $request)
+    {
         $allowedIncludes = [
             'user',
             'patients'
@@ -43,7 +46,8 @@ class DentistsController extends Controller
         return apiResponse(DentistResource::collection($users));
     }
 
-    public function createDentist(CreateDentistRequest $request, UsersService $service)  {
+    public function createDentist(CreateDentistRequest $request, UsersService $service)
+    {
         $currentUser = $request->user();
         $validated = $request->validated();
 
@@ -71,22 +75,30 @@ class DentistsController extends Controller
         $query = Dentist::query()
             ->with('user') // eager load for performance
             ->when($request->filled('name'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('name', 'like', '%' . $request->name . '%')
                 );
             })
             ->when($request->filled('email'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('email', 'like', '%' . $request->email . '%')
                 );
             })
             ->when($request->filled('phone'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('phone', 'like', '%' . $request->phone . '%')
                 );
             })
             ->when($request->filled('username'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('username', 'like', '%' . $request->username . '%')
                 );
             })
@@ -100,7 +112,9 @@ class DentistsController extends Controller
                 $q->where('is_available', $request->boolean('is_available'));
             })
             ->when($request->filled('is_active'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('is_active', $request->boolean('is_active'))
                 );
             })
@@ -115,11 +129,13 @@ class DentistsController extends Controller
                 $q->where(function ($sub) use ($term) {
                     $sub->where('license_number', 'like', "%$term%")
                         ->orWhere('specialization', 'like', "%$term%")
-                        ->orWhereHas('user', fn($u) =>
+                        ->orWhereHas(
+                            'user',
+                            fn($u) =>
                             $u->where('name', 'like', "%$term%")
-                            ->orWhere('email', 'like', "%$term%")
-                            ->orWhere('phone', 'like', "%$term%")
-                            ->orWhere('username', 'like', "%$term%")
+                                ->orWhere('email', 'like', "%$term%")
+                                ->orWhere('phone', 'like', "%$term%")
+                                ->orWhere('username', 'like', "%$term%")
                         );
                 });
             });
@@ -128,8 +144,9 @@ class DentistsController extends Controller
         if ($request->filled('sort_by')) {
             $direction = $request->get('sort_dir', 'asc');
             if (in_array($request->sort_by, ['name', 'email', 'username', 'phone'])) {
-                $query->orderBy(User::select($request->sort_by)
-                    ->whereColumn('users.id', 'dentists.user_id'),
+                $query->orderBy(
+                    User::select($request->sort_by)
+                        ->whereColumn('users.id', 'dentists.user_id'),
                     $direction
                 );
             } else {
@@ -145,5 +162,61 @@ class DentistsController extends Controller
         );
     }
 
+    public function getAppointments(Request $request, User $dentist)
+    {
+        // Validate query parameters
+        $validated = $request->validate([
+            'date'   => 'nullable|date',
+            'from'   => 'nullable|date',
+            'to'     => 'nullable|date',
+            'status' => 'nullable|string|in:scheduled,in_progress,completed,cancelled'
+        ]);
 
+        $query = TreatmentSession::with(['patient.user'])
+            ->where('dentist_id', $dentist->id)
+            ->whereNot('status', 'cancelled');
+
+        // Filter: specific date
+        if ($request->date) {
+            $query->whereDate('start_at', $request->date);
+        }
+
+        // Filter: date range
+        if ($request->from) {
+            $query->whereDate('start_at', '>=', $request->from);
+        }
+
+        if ($request->to) {
+            $query->whereDate('start_at', '<=', $request->to);
+        }
+
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Default: next 30 days
+        if (!$request->date && !$request->from && !$request->to) {
+            $query->whereBetween('start_at', [
+                now(),
+                now()->addDays(30)
+            ]);
+        }
+
+        $appointments = $query
+            ->orderBy('start_at')
+            ->get();
+
+
+        $appointments = $appointments
+            ->map(fn(TreatmentSession $s) => (new DentistAppointmentDto($s))->toArray());
+
+        return apiResponse(
+            data: [
+    'dentist' => $dentist->only('id', 'name'),
+    'appointments' => $appointments
+],
+            success: true
+        );
+    }
 }

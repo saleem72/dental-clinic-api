@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\V1;
 
-use App\Enums\ActionRequestActions;
+use App\Enums\TreatmentStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class HandleActionRequest extends FormRequest
+class TreatmentCourseStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,13 @@ class HandleActionRequest extends FormRequest
     public function rules(): array
     {
         return [
-             "action" => ['required', Rule::in(array_column(ActionRequestActions::cases(), 'value'))],
-             "notes" => 'nullable|string',
+            'patient_id' => 'required|exists:patients,id',
+            'dentist_id' => 'required|exists:dentists,id',
+            'started_at' => 'required|date|date_format:Y-m-d\TH:i:s\Z',
+            'completed_at' => 'nullable|date|date_format:Y-m-d\TH:i:s\Z',
+            'notes' => 'nullable|string',
+            'status' => ['required', Rule::in(array_column(TreatmentStatus::cases(), 'value'))],
         ];
     }
 }
+

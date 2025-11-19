@@ -51,9 +51,7 @@ class PatientResource extends JsonResource
             'medical_history' => $this->medical_history,
             'dentist_id' => $this->dentist_id,
             'patient_code' => $this->patient_code,
-
-            // 'user' => $this->whenLoaded('user', fn () => new UserMiniResource($this->user)),
-            'dentist' => $this->whenLoaded('dentist', fn () => new DentistResource($this->dentist)),
+            'dentist' => $this->whenLoaded('dentist', fn () => new DentistMiniResource($this->dentist)),
 
 
         ];

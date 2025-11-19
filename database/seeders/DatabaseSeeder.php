@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+// use App\Models\V1\Patient;
+// use App\Models\V1\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -19,6 +20,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             DentalProcedureSeeder::class,
+            PatientSeeder::class,
+            TreatmentCourseSeeder::class,
+            TreatmentSessionSeeder::class,
         ]);
     }
 }

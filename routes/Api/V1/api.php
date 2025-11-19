@@ -5,11 +5,12 @@ use App\Http\Controllers\Api\V1\DentistController;
 use App\Http\Controllers\Api\V1\DentistsController;
 use App\Http\Controllers\Api\V1\PatientController;
 use App\Http\Controllers\Api\V1\PatientsController;
-use App\Http\Controllers\Api\V1\ReceptionistController;
 use App\Http\Controllers\Api\V1\TreatmentsController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UsersController;
 use App\Http\Controllers\Api\V1\ActionRequestController;
+use App\Http\Controllers\Api\V1\ReceptionistsController;
+use App\Http\Controllers\Api\V1\TreatmentSessionController;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,7 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
         ->controller(PatientsController::class)
         ->group(function() {
             Route::get('/', 'index')->middleware('role.any:manager|dentist|receptionist');
+            Route::get('/{patient}', 'show')->middleware('role.any:manager|dentist|receptionist');
             Route::post('/', 'createPatient')->middleware('role.any:manager|dentist|receptionist');
             Route::get('/search', 'searchPatients');
         });
@@ -67,6 +69,14 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
             Route::get('/', 'index')->middleware('role.any:manager|dentist|receptionist');
             Route::post('/', 'createDentist')->middleware('role.any:manager|dentist|receptionist');
             Route::get('/search', 'searchDentists');
+            Route::get('/{dentist}/appointments', 'getAppointments');
+        });
+
+    Route::prefix('receptionists')
+        ->controller(ReceptionistsController::class)
+        ->group(function() {
+            Route::get('/', 'index')->middleware('role.any:manager|dentist|receptionist');
+            Route::post('/', 'createReceptionist')->middleware('role.any:manager|dentist|receptionist');
         });
 
     Route::prefix('treatments')
@@ -74,6 +84,17 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
         // ->middleware('role:dentist')
         ->group(function() {
             Route::get('/procedures', 'getDentalProcedures');
+            Route::get('/', 'index');
+            Route::get('/{treatment}', 'show');
+            Route::post('/', 'store');
+        });
+
+    Route::prefix('sessions')
+        ->controller(TreatmentSessionController::class)
+        // ->middleware('role:dentist')
+        ->group(function() {
+            Route::get('/', 'index');
+            Route::get('/{session}', 'show');
         });
 
     Route::prefix('patient')
@@ -99,9 +120,9 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
             ->controller(ActionRequestController::class)
             ->group(function () {
                 Route::get('/', 'index');
+                Route::get('/{actionRequest}', 'show');
                 Route::post('/', 'store');
                 Route::post('/potential-patient', 'potentialPatient');
-
                 Route::post('/{actionRequest}/handle', 'handle');
             });
 });

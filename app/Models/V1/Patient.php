@@ -2,10 +2,13 @@
 
 namespace App\Models\V1;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Patient extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'date_of_birth',
@@ -19,7 +22,7 @@ class Patient extends Model
     protected function casts(): array
     {
         return [
-            'date_of_birth' => 'datetime',
+            'date_of_birth' => 'datetime:Y-m-d\TH:i:s\Z',
         ];
     }
 

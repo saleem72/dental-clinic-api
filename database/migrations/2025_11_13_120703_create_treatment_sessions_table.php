@@ -15,16 +15,16 @@ return new class extends Migration
             $table->id();
 
             // Relations
-            $table->foreignId('treatment_course_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('dentist_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('treatment_course_id')->constrained('treatment_courses')->cascadeOnDelete();
+            $table->foreignId('dentist_id')->nullable()->constrained('dentists')->nullOnDelete();
 
             // Session details
-            $table->date('session_date')->nullable();
+            $table->dateTime('start_at')->nullable();
+            $table->unsignedSmallInteger('estimated_time');
             $table->text('notes')->nullable();
 
             // Status & billing
             $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
-            $table->decimal('total_cost', 10, 2)->nullable();
 
             $table->timestamps();
         });

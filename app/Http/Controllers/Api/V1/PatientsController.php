@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 class PatientsController extends Controller
 {
     // index
-    public function index(Request $request)  {
+    public function index(Request $request)
+    {
         // Define a whitelist of relationships that are allowed to be included
         $allowedIncludes = [
             'user',
@@ -44,7 +45,8 @@ class PatientsController extends Controller
         return apiResponse(PatientResource::collection($users));
     }
 
-    public function createPatient(CreatePatientRequest $request, UsersService $service)  {
+    public function createPatient(CreatePatientRequest $request, UsersService $service)
+    {
         $currentUser = $request->user();
         $validated = $request->validated();
 
@@ -72,17 +74,23 @@ class PatientsController extends Controller
         $query = Patient::query()
             ->with('user') // eager load to avoid N+1
             ->when($request->filled('name'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('name', 'like', '%' . $request->name . '%')
                 );
             })
             ->when($request->filled('email'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('email', 'like', '%' . $request->email . '%')
                 );
             })
             ->when($request->filled('phone'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('phone', 'like', '%' . $request->phone . '%')
                 );
             })
@@ -93,7 +101,9 @@ class PatientsController extends Controller
                 $q->where('dentist_id', $request->dentist_id);
             })
             ->when($request->filled('is_active'), function ($q) use ($request) {
-                $q->whereHas('user', fn($u) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
                     $u->where('is_active', $request->boolean('is_active'))
                 );
             })
@@ -111,8 +121,9 @@ class PatientsController extends Controller
         if ($request->filled('sort_by')) {
             $direction = $request->get('sort_dir', 'asc');
             if (in_array($request->sort_by, ['name', 'email', 'username', 'phone'])) {
-                $query->orderBy(User::select($request->sort_by)
-                    ->whereColumn('users.id', 'patients.user_id'),
+                $query->orderBy(
+                    User::select($request->sort_by)
+                        ->whereColumn('users.id', 'patients.user_id'),
                     $direction
                 );
             } else {
@@ -128,5 +139,17 @@ class PatientsController extends Controller
         );
     }
 
+    function show(Request $request, Patient $patient)
+    {
 
+
+        $includeDentist = $request->boolean('include_dentist');
+
+        if ($includeDentist) {
+            // Load the relationship or perform a specific action
+            $patient->load('dentist');
+        }
+
+        return apiResponse(new PatientResource($patient));
+    }
 }

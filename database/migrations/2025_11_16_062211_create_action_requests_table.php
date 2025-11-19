@@ -17,6 +17,7 @@ return new class extends Migration
             // Useful references
             $table->foreignId('created_by_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('assigned_to_id')->constrained('users')->cascadeOnDelete()->nullable();
+            $table->foreignId('handled_by_id')->constrained('users')->cascadeOnDelete()->nullable();
 
             // Optional patient treatment context
             $table->foreignId('patient_id')->nullable()->constrained('patients')->nullOnDelete();
