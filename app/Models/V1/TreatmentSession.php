@@ -11,7 +11,7 @@ class TreatmentSession extends Model
     use HasFactory;
 
     protected $fillable = [
-        'treatment_id',
+        'treatment_course_id',
         'dentist_id',
         'start_at',
         'estimated_time',

@@ -50,3 +50,16 @@ if (!function_exists('formatValidationErrors')) {
         return $formattedErrors;
     }
 }
+
+if (!function_exists('replace_value_in_array')) {
+    function replace_value_in_array(array &$array, $oldValue, $newValue): array
+    {
+        $key = array_search($oldValue, $array);
+
+        if ($key !== false) {
+            $array[$key] = $newValue;
+        }
+
+        return $array;
+    }
+}

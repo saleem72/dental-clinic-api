@@ -35,7 +35,7 @@ class TreatmentCourse extends Model
     }
 
     public function treatmentSessions() {
-        return $this->hasMany(TreatmentSession::class, 'treatment_course_id');
+        return $this->hasMany(TreatmentSession::class, 'treatment_course_id', 'id');
     }
 
     public function procedures() {

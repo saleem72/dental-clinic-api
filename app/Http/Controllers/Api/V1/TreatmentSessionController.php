@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\V1\TreatmentCourse;
+use App\Http\Requests\V1\TreatmentSessionStoreRequest;
+use App\Http\Resources\V1\TreatmentSessionMiniResource;
+use App\Http\Resources\V1\TreatmentSessionResource;
 use App\Models\V1\TreatmentSession;
 use Illuminate\Http\Request;
 
 class TreatmentSessionController extends Controller
 {
     function index(Request $request)  {
-        return TreatmentSession::paginate(15);
-
+        $sessions =  TreatmentSession::paginate(8);
+        // TreatmentSessionRecourse
+        return TreatmentSessionMiniResource::collection($sessions);
     }
 
     function show(Request $request, TreatmentSession $session) {
@@ -36,6 +39,12 @@ class TreatmentSessionController extends Controller
             $session->load($requestedIncludes);
         }
 
-        return apiResponse($session);
+        return apiResponse(new TreatmentSessionResource($session));
+    }
+
+    public function store(TreatmentSessionStoreRequest $request) {
+        $validated = $request->validated();
+        $session = TreatmentSession::create($validated);
+        return apiResponse(new TreatmentSessionResource($session), status: 201);
     }
 }

@@ -9,7 +9,9 @@ use App\Http\Controllers\Api\V1\TreatmentsController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UsersController;
 use App\Http\Controllers\Api\V1\ActionRequestController;
+use App\Http\Controllers\Api\V1\DentalProcedureController;
 use App\Http\Controllers\Api\V1\ReceptionistsController;
+use App\Http\Controllers\Api\V1\TreatmentProcedureController;
 use App\Http\Controllers\Api\V1\TreatmentSessionController;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Route;
@@ -83,7 +85,6 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
         ->controller(TreatmentsController::class)
         // ->middleware('role:dentist')
         ->group(function() {
-            Route::get('/procedures', 'getDentalProcedures');
             Route::get('/', 'index');
             Route::get('/{treatment}', 'show');
             Route::post('/', 'store');
@@ -95,6 +96,25 @@ Route::middleware(['auth:sanctum', 'valid_password'])->group(function () {
         ->group(function() {
             Route::get('/', 'index');
             Route::get('/{session}', 'show');
+            Route::post('/', 'store');
+        });
+
+    Route::prefix('procedures')
+        ->controller(TreatmentProcedureController::class)
+        // ->middleware('role:dentist')
+        ->group(function() {
+            Route::get('/', 'index');
+            Route::get('/{procedure}', 'show');
+            Route::post('/', 'store');
+        });
+
+    Route::prefix('dental-procedures')
+        ->controller(DentalProcedureController::class)
+        ->group(function() {
+            Route::get('/', 'index');
+            Route::get('/{procedure}', 'show');
+            Route::post('/', 'store');
+            Route::put('/{procedure}', 'update');
         });
 
     Route::prefix('patient')

@@ -12,13 +12,6 @@ use Illuminate\Support\Arr;
 
 class TreatmentsController extends Controller
 {
-
-    public function getDentalProcedures()
-    {
-        $procedures =  DentalProcedure::all();
-        return apiResponse($procedures);
-    }
-
     function index(Request $request)
     {
         $allowedIncludes = ['patient', 'dentist'];
@@ -42,12 +35,9 @@ class TreatmentsController extends Controller
             $query->with($requestedIncludes);
         }
 
-        $treatments = $query->with('treatmentSessions')->get();
+        $treatments = $query->paginate(8);
 
-        return apiResponse(
-            data: TreatmentResource::collection($treatments),
-            message: 'Treatments were retrieved successfully',
-        );
+        return  TreatmentResource::collection($treatments);
     }
 
     function show(Request $request, TreatmentCourse $treatment)
@@ -70,6 +60,7 @@ class TreatmentsController extends Controller
         if (!empty($requestedIncludes)) {
             $treatment->load($requestedIncludes);
         }
+
 
         return apiResponse(
             message: 'Treatment was retrieved successfully',

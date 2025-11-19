@@ -5,7 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class TreatmentResource extends JsonResource
+class TreatmentMiniResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,15 +16,10 @@ class TreatmentResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            "patient_id" => $this->patient_id,
-            "dentist_id" => $this->dentist_id,
             "started_at" => $this->started_at,
             "completed_at" => $this->completed_at,
             "notes" => $this->notes,
             "status" => $this->status,
-            "patient" => $this->whenLoaded('patient', fn () => new PatientMiniResource($this->patient)),
-            "dentist" => $this->whenLoaded('dentist', fn () => new DentistMiniResource($this->dentist)),
-            "sessions" => $this->whenLoaded('treatmentSessions', fn () => TreatmentSessionMiniResource::collection($this->treatmentSessions) ),
         ];
     }
 }
